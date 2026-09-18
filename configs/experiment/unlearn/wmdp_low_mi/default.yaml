@@ -56,18 +56,21 @@ eval:
       - mmlu_philosophy
     aggregate_key: mmlu_total  # micro-averaged accuracy over all tasks
     overwrite: False
-  ifeval:
-    handler: LMEvalEvaluator
-    only_at_relearn_start: true  # run only at the relearn stage's epoch-0 eval
-    tasks:
-      # 541 prompts, greedy generation up to 1280 tokens; needs langdetect + immutabledict.
-      # Loaded from the raw jsonl: the README schema of google/IFEval breaks datasets==3.0.1.
-      - task: ifeval
-        dataset_path: json
-        dataset_kwargs:
-          data_files: hf://datasets/google/IFEval/ifeval_input_data.jsonl
-    overwrite: False
-    # simple_evaluate_args: {limit: 50}  # for quick tests
+  # IFEval, disabled: on base models it scores ~0.12 and unlearning can *raise* it
+  # (format checks pass by accident on degraded outputs), so it is uninterpretable here.
+  # Works as-is for instruct models. ~30 min/run (541 prompts x 1280 greedy tokens);
+  # needs `pip install langdetect immutabledict nltk` (lm-eval[ifeval] extra).
+  # ifeval:
+  #   handler: LMEvalEvaluator
+  #   only_at_relearn_start: true  # run only at the relearn stage's epoch-0 eval
+  #   tasks:
+  #     # Loaded from the raw jsonl: the README schema of google/IFEval breaks datasets==3.0.1.
+  #     - task: ifeval
+  #       dataset_path: json
+  #       dataset_kwargs:
+  #         data_files: hf://datasets/google/IFEval/ifeval_input_data.jsonl
+  #   overwrite: False
+  #   # simple_evaluate_args: {limit: 50}  # for quick tests
 
 # CLI: wmdp_domain=cyber to switch domain
 wmdp_domain: bio
