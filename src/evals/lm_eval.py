@@ -1,3 +1,4 @@
+import copy
 import logging
 import math
 
@@ -127,7 +128,7 @@ class LMEvalEvaluator(Evaluator):
             results = retry_on_rate_limit(
                 simple_evaluate,
                 model=model,
-                tasks=todo,
+                tasks=copy.deepcopy(todo),  # lm_eval pops 'task' from dict configs
                 task_manager=self.task_manager,
                 **self.simple_evaluate_args,
             )
@@ -150,14 +151,19 @@ class LMEvalEvaluator(Evaluator):
             target_lls = [s["resps"][s["target"]][0][0] for s in samples]
             return sum(math.exp(ll) for ll in target_lls) / len(target_lls)
 
+        def _is_loglikelihood(samples):
+            # generative tasks (e.g. ifeval) have no "acc" / target log-likelihoods
+            return bool(samples) and "acc" in samples[0]
+
         for task in self.tasks:
             samples = _task_samples(task)
-            if samples:
+            if _is_loglikelihood(samples):
                 summary[f"{self.get_task_name(task)}/acc_t1"] = _acc_t1(samples)
 
         # micro-averaged accuracy over all tasks, logged under eval_cfg.aggregate_key
         if self.aggregate_key:
             samples = [s for task in self.tasks for s in _task_samples(task)]
+            assert _is_loglikelihood(samples), "aggregate_key needs loglikelihood tasks"
             summary[f"{self.aggregate_key}/acc"] = sum(s["acc"] for s in samples) / len(samples)
             summary[f"{self.aggregate_key}/acc_t1"] = _acc_t1(samples)
 
