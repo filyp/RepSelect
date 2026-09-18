@@ -1,0 +1,170 @@
+{
+  "0.01": {
+    "RepSelectSimple_forget": {
+      "kl": 0.009478945285081863,
+      "robustness": 0.0327332108592935,
+      "mmlu": 0.6868884540117417,
+      "run": "v5.3_Llama-3.1-8B_bio_RepSelectSimple_forget_26",
+      "note": "kl0.01 rerun overshot the budget at step 1; mmlu taken from kl0.03_Llama-3.1-8B_bio_RepSelectSimple_forget"
+    },
+    "NPO": {
+      "kl": 0.00833576638251543,
+      "robustness": 0.14823657314559807,
+      "mmlu": 0.7181996086105675,
+      "run": "kl0.01_Llama-3.1-8B_bio_NPO",
+      "unlearning_lr": null
+    },
+    "RMU": {
+      "kl": 0.006470979657024145,
+      "robustness": 0.1662127516218645,
+      "mmlu": 0.7093933463796478,
+      "run": "kl0.01_Llama-3.1-8B_bio_RMU",
+      "unlearning_lr": null
+    },
+    "UNDIAL": {
+      "kl": 0.009851934388279915,
+      "robustness": 0.14897667079571156,
+      "mmlu": 0.7123287671232876,
+      "run": "kl0.01_Llama-3.1-8B_bio_UNDIAL",
+      "unlearning_lr": null
+    },
+    "SimNPO": {
+      "kl": 0.0009946877835318446,
+      "robustness": 0.1674499613733037,
+      "mmlu": 0.7172211350293543,
+      "run": "kl0.01_Llama-3.1-8B_bio_SimNPO",
+      "unlearning_lr": null
+    },
+    "GradDiff": {
+      "kl": 0.009985946118831635,
+      "robustness": 0.15797859881384188,
+      "mmlu": 0.713307240704501,
+      "run": "kl0.01_Llama-3.1-8B_bio_GradDiff",
+      "unlearning_lr": null
+    }
+  },
+  "0.03": {
+    "RepSelectSimple_forget": {
+      "kl": 0.010552496649324894,
+      "robustness": 0.03286486300994033,
+      "mmlu": 0.6868884540117417,
+      "run": "kl0.03_Llama-3.1-8B_bio_RepSelectSimple_forget",
+      "unlearning_lr": null
+    },
+    "NPO": {
+      "kl": 0.028000516816973686,
+      "robustness": 0.14327308639675673,
+      "mmlu": 0.7123287671232876,
+      "run": "kl0.03_Llama-3.1-8B_bio_NPO",
+      "unlearning_lr": null
+    },
+    "RMU": {
+      "kl": 0.018422266468405724,
+      "robustness": 0.164616875207407,
+      "mmlu": 0.7035225048923679,
+      "run": "kl0.03_Llama-3.1-8B_bio_RMU",
+      "unlearning_lr": null
+    },
+    "UNDIAL": {
+      "kl": 0.02549522928893566,
+      "robustness": 0.13659850938872153,
+      "mmlu": 0.7123287671232876,
+      "run": "kl0.03_Llama-3.1-8B_bio_UNDIAL",
+      "unlearning_lr": null
+    },
+    "SimNPO": {
+      "kl": 0.023208308964967728,
+      "robustness": 0.16681311349185354,
+      "mmlu": 0.7152641878669276,
+      "run": "kl0.03_Llama-3.1-8B_bio_SimNPO",
+      "unlearning_lr": null
+    },
+    "GradDiff": {
+      "kl": 0.014615307562053204,
+      "robustness": 0.15642023861397128,
+      "mmlu": 0.7172211350293543,
+      "run": "kl0.03_Llama-3.1-8B_bio_GradDiff",
+      "unlearning_lr": null
+    }
+  },
+  "0.1": {
+    "RepSelectSimple_forget": {
+      "kl": 0.0840558335185051,
+      "robustness": 0.008682699605201618,
+      "mmlu": 0.6144814090019569,
+      "run": "kl0.1_Llama-3.1-8B_bio_RepSelectSimple_forget",
+      "unlearning_lr": null
+    },
+    "NPO": {
+      "kl": 0.09249746799468994,
+      "robustness": 0.1371638378382685,
+      "mmlu": 0.7084148727984344,
+      "run": "kl0.1_Llama-3.1-8B_bio_NPO",
+      "unlearning_lr": null
+    },
+    "UNDIAL": {
+      "kl": 0.09858885407447815,
+      "robustness": 0.12220701338374056,
+      "mmlu": 0.7045009784735812,
+      "run": "kl0.1_Llama-3.1-8B_bio_UNDIAL",
+      "unlearning_lr": null
+    },
+    "SimNPO": {
+      "kl": 0.07951340824365616,
+      "robustness": 0.16343629460331469,
+      "mmlu": 0.7084148727984344,
+      "run": "kl0.1_Llama-3.1-8B_bio_SimNPO",
+      "unlearning_lr": null
+    },
+    "GradDiff": {
+      "kl": 0.06671282649040222,
+      "robustness": 0.14844731490970606,
+      "mmlu": 0.7142857142857143,
+      "run": "kl0.1_Llama-3.1-8B_bio_GradDiff",
+      "unlearning_lr": null
+    }
+  },
+  "0.3": {
+    "RepSelectSimple_forget": {
+      "kl": 0.22811587154865265,
+      "robustness": 0.0049623834425897495,
+      "mmlu": 0.49412915851272016,
+      "run": "kl0.3_Llama-3.1-8B_bio_RepSelectSimple_forget",
+      "unlearning_lr": null
+    },
+    "NPO": {
+      "kl": 0.294964462518692,
+      "robustness": 0.12970785819936856,
+      "mmlu": 0.6937377690802349,
+      "run": "kl0.3_Llama-3.1-8B_bio_NPO",
+      "unlearning_lr": null
+    },
+    "RMU": {
+      "kl": 0.17237351834774017,
+      "robustness": 0.1604085434326216,
+      "mmlu": 0.6996086105675147,
+      "run": "kl0.3_Llama-3.1-8B_bio_RMU",
+      "unlearning_lr": null
+    },
+    "SimNPO": {
+      "kl": 0.26621681451797485,
+      "robustness": 0.15086062269922543,
+      "mmlu": 0.6898238747553816,
+      "run": "kl0.3_Llama-3.1-8B_bio_SimNPO",
+      "unlearning_lr": null
+    },
+    "GradDiff": {
+      "kl": 0.21854519844055176,
+      "robustness": 0.14436268531642685,
+      "mmlu": 0.7123287671232876,
+      "run": "kl0.3_Llama-3.1-8B_bio_GradDiff",
+      "unlearning_lr": null
+    }
+  },
+  "reference": {
+    "kl": 0.0,
+    "robustness": 0.16750353591786207,
+    "mmlu": 0.713307240704501,
+    "run": "kl0.1_Llama-3.1-8B_bio_reference"
+  }
+}
