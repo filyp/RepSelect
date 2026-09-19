@@ -54,7 +54,7 @@ METHODS = [m for m, t in titles_dict.items() if t]
 
 # budget -> method -> wandb run name; all from run_kl0.1.sh with budget= edited
 # (top-1 hyperparameters of the paper's 0.01 search; 0.01 rerun so that MMLU is logged)
-NEW_BUDGETS = [0.01, 0.03, 0.1, 0.3]
+NEW_BUDGETS = [0.003, 0.01, 0.03, 0.1, 0.3]
 RUNS = {b: {m: f"kl{b}_Llama-3.1-8B_bio_{m}" for m in METHODS} for b in NEW_BUDGETS}
 REFERENCE_RUN = "kl0.1_Llama-3.1-8B_bio_reference"
 
@@ -142,8 +142,8 @@ else:
     print(f"Saved {CACHE_FILE}")
 
 # %%
-BUDGETS = ["0.01", "0.03", "0.1", "0.3"]
-budget_marker = {"0.01": "o", "0.03": "^", "0.1": "s", "0.3": "D"}
+BUDGETS = ["0.003", "0.01", "0.03", "0.1", "0.3"]
+budget_marker = {"0.003": "v", "0.01": "o", "0.03": "^", "0.1": "s", "0.3": "D"}
 
 fig, (ax_kl, ax_mmlu) = plt.subplots(1, 2, figsize=(5.5, 2.4), sharey=True)
 
@@ -159,7 +159,10 @@ for ax, key in [(ax_kl, "kl"), (ax_mmlu, "mmlu")]:
         if not pts:
             continue
         color = method_to_color[method]
-        ax.plot([p[0] for p in pts], [p[1] for p in pts], color=color, lw=0.8, alpha=0.6)
+        # each method's curve starts at the no-unlearning point
+        xs = [ref[key]] + [p[0] for p in pts]
+        ys = [ref["robustness"] * 100] + [p[1] for p in pts]
+        ax.plot(xs, ys, color=color, lw=0.8, alpha=0.6)
         for x, y, b in pts:
             ax.scatter(x, y, marker=budget_marker[b], s=22, color=color, zorder=3)
     ax.spines["top"].set_visible(False)

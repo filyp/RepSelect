@@ -1,4 +1,13 @@
 {
+  "0.003": {
+    "RepSelectSimple_forget": {
+      "kl": 0.002537893131375313,
+      "robustness": 0.07682630068092725,
+      "mmlu": 0.7035225048923679,
+      "run": "kl0.003_Llama-3.1-8B_bio_RepSelectSimple_forget",
+      "unlearning_lr": null
+    }
+  },
   "0.01": {
     "RepSelectSimple_forget": {
       "kl": 0.009478945285081863,
@@ -102,6 +111,13 @@
       "run": "kl0.1_Llama-3.1-8B_bio_NPO",
       "unlearning_lr": null
     },
+    "RMU": {
+      "kl": 0.034351933747529984,
+      "robustness": 0.16163623662279478,
+      "mmlu": 0.7025440313111546,
+      "run": "kl0.1_Llama-3.1-8B_bio_RMU",
+      "unlearning_lr": null
+    },
     "UNDIAL": {
       "kl": 0.09858885407447815,
       "robustness": 0.12220701338374056,
@@ -144,6 +160,13 @@
       "robustness": 0.1604085434326216,
       "mmlu": 0.6996086105675147,
       "run": "kl0.3_Llama-3.1-8B_bio_RMU",
+      "unlearning_lr": null
+    },
+    "UNDIAL": {
+      "kl": 0.29671409726142883,
+      "robustness": 0.11005161190221674,
+      "mmlu": 0.6839530332681018,
+      "run": "kl0.3_Llama-3.1-8B_bio_UNDIAL",
       "unlearning_lr": null
     },
     "SimNPO": {

@@ -111,3 +111,15 @@ prefix01="kl0.01_${model}_${wmdp_domain}"
 #   trainer.method_args.alpha=2.543875814472088 \
 #   trainer.method_args.beta=5.7685847199969285 \
 #   task_name=${prefix01}_UNDIAL
+
+###############################################################
+# Budget 0.003, RepSelect only. The update is a cached gradient applied once per epoch,
+# so a smaller LR just gives a finer step ladder (n steps at LR/n == 1 step at LR) and
+# lands closer to the budget instead of overshooting it. One step at the top-1 LR
+# (0.1156) gives KL ~0.010; KL grows ~quadratically, so 0.02 gives ~0.0003 per step
+# and should stop after ~3 steps at KL ~0.003.
+common003="python src/unlearn_relearn.py --config-name=unlearn.yaml experiment=unlearn/wmdp_low_mi/default model=${model} wmdp_domain=${wmdp_domain} eval.wikitext_kl.disr_budget=0.003 trainer.args.num_train_epochs=100"
+run ${common003} trainer=RepSelectSimple \
+  trainer.args.learning_rate=0.02 \
+  trainer.method_args.lora_lr=0.05012932753237797 \
+  task_name=kl0.003_${model}_${wmdp_domain}_RepSelectSimple_forget
