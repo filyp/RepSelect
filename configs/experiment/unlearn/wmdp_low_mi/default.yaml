@@ -37,16 +37,19 @@ eval:
   recall_prob:
     handler: ProbabilityEvaluator
     dataset_name: recall
-  recall_rouge:
-    # free-generation counterpart of recall_prob: does the model still *produce*
-    # the answer, not just assign it probability under teacher forcing
-    handler: RougeGenEvaluator
-    dataset_name: eval_qs
-    max_new_tokens: 32
-    only_at_relearn: true  # unlearning-stage generations cost time and add nothing:
-                           # relearn epoch 0 already evaluates the unlearned model
-    # all 95 generations go to a wandb table + generations.json each relearn epoch;
-    # only the first few are printed to the runner's stdout
+  # recall_rouge is disabled: it was a one-off follow-up for reviewers (run_rouge.sh),
+  # generation is heavy, and the ROUGE numbers tracked recall_prob's ranking, so it is
+  # no longer needed. Re-enable by uncommenting.
+  # recall_rouge:
+  #   # free-generation counterpart of recall_prob: does the model still *produce*
+  #   # the answer, not just assign it probability under teacher forcing
+  #   handler: RougeGenEvaluator
+  #   dataset_name: eval_qs
+  #   max_new_tokens: 32
+  #   only_at_relearn: true  # unlearning-stage generations cost time and add nothing:
+  #                          # relearn epoch 0 already evaluates the unlearned model
+  #   # all 95 generations go to a wandb table + generations.json each relearn epoch;
+  #   # only the first few are printed to the runner's stdout
   fewshot_attack_5:
     handler: FewShotWMDPEvaluator
     task: wmdp_${wmdp_domain}
