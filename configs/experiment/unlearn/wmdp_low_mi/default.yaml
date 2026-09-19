@@ -43,6 +43,10 @@ eval:
     handler: RougeGenEvaluator
     dataset_name: eval_qs
     max_new_tokens: 32
+    only_at_relearn: true  # unlearning-stage generations cost time and add nothing:
+                           # relearn epoch 0 already evaluates the unlearned model
+    # all 95 generations go to a wandb table + generations.json each relearn epoch;
+    # only the first few are printed to the runner's stdout
   fewshot_attack_5:
     handler: FewShotWMDPEvaluator
     task: wmdp_${wmdp_domain}
