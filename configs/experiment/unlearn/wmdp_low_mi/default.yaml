@@ -37,6 +37,12 @@ eval:
   recall_prob:
     handler: ProbabilityEvaluator
     dataset_name: recall
+  recall_rouge:
+    # free-generation counterpart of recall_prob: does the model still *produce*
+    # the answer, not just assign it probability under teacher forcing
+    handler: RougeGenEvaluator
+    dataset_name: eval_qs
+    max_new_tokens: 32
   fewshot_attack_5:
     handler: FewShotWMDPEvaluator
     task: wmdp_${wmdp_domain}
