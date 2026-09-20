@@ -10,6 +10,8 @@ elif [[ "$*" == *DeepSeek* ]]; then
   URL="https://tasks.datacrunch.io/open-unlearning/run"  # B200 180GB
 elif [[ "$*" == *Qwen3.5-9B* ]]; then
   URL="https://tasks.datacrunch.io/open-unlearning3/run"  # H200 141GB
+elif [[ "$*" == *NPOSAM* ]]; then
+  URL="https://tasks.datacrunch.io/open-unlearning3/run"  # H200 141GB: SAM holds one extra parameter-sized buffer on top of NPO's ref model
 else
   URL="https://tasks.datacrunch.io/open-unlearning2/run"  # RTX PRO 6000 96GB
 fi

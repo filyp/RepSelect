@@ -1,0 +1,13 @@
+defaults:
+  - NPO
+
+handler: NPOSAM
+method_args:
+  sam_rho: 0.01  # default of Fan et al. (ICML 2025); their sweep covers [1e-3, 1e-1]
+args:
+  # The SAM perturbation is computed from the whole optimizer batch, so no gradient
+  # accumulation (as in the reference implementation). Batch 32 keeps the effective
+  # batch of NPO in this codebase (8 x 4 accumulation), so NPO's tuned learning rate
+  # means the same thing here.
+  gradient_accumulation_steps: 1
+  per_device_train_batch_size: 32
