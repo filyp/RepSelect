@@ -50,16 +50,16 @@ eval:
   #                          # relearn epoch 0 already evaluates the unlearned model
   #   # all 95 generations go to a wandb table + generations.json each relearn epoch;
   #   # only the first few are printed to the runner's stdout
-  retain_rouge:
-    # retain-side counterpart of recall_rouge, asked for by reviewers: the retain_eval
-    # passages are plain text, so each is split into a 64-token prompt and the next
-    # 32 tokens as the reference; the greedy 32-token continuation is scored with
-    # ROUGE-1 recall. 64 passages, so cheap enough to keep on.
-    handler: RougeContinuationEvaluator
-    dataset_name: retain_eval
-    prompt_tokens: 64
-    max_new_tokens: 32
-    only_at_relearn: true  # relearn epoch 0 already evaluates the unlearned model
+  # retain_rouge:
+  #   # retain-side counterpart of recall_rouge, asked for by reviewers: the retain_eval
+  #   # passages are plain text, so each is split into a 64-token prompt and the next
+  #   # 32 tokens as the reference; the greedy 32-token continuation is scored with
+  #   # ROUGE-1 recall. 64 passages, so cheap enough to keep on.
+  #   handler: RougeContinuationEvaluator
+  #   dataset_name: retain_eval
+  #   prompt_tokens: 64
+  #   max_new_tokens: 32
+  #   only_at_relearn: true  # relearn epoch 0 already evaluates the unlearned model
   fewshot_attack_5:
     handler: FewShotWMDPEvaluator
     task: wmdp_${wmdp_domain}
