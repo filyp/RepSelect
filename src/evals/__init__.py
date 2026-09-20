@@ -8,7 +8,7 @@ from evals.wmdp_low_mi import WMDPLLowMIEvaluator
 from evals.fewshot_wmdp import FewShotWMDPEvaluator
 from evals.fewshot_beavertails import FewShotBeaverTailsEvaluator
 from evals.kl_eval import KLEvaluator
-from evals.rouge_gen import RougeGenEvaluator
+from evals.rouge_gen import RougeGenEvaluator, RougeContinuationEvaluator
 
 EVALUATOR_REGISTRY: Dict[str, Any] = {}
 
@@ -48,4 +48,5 @@ _register_evaluator(FewShotBeaverTailsEvaluator)
 _register_evaluator(LossEvaluator)
 _register_evaluator(ProbabilityEvaluator)
 _register_evaluator(RougeGenEvaluator)
+_register_evaluator(RougeContinuationEvaluator)
 _register_evaluator(KLEvaluator)
