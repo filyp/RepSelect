@@ -87,8 +87,9 @@ prefix01="kl0.01_${model}_${wmdp_domain}"
 #   trainer.method_args.alpha=1.5133906918539597 \
 #   trainer.method_args.beta=0.47790320784689266 \
 #   task_name=${prefix01}_NPO
+# # # note: the LR is slightly smaller, than the 0.11 value from Optuna search, because the original one can randomly overshoot the kl0.01 target in one epoch, which makes relearning be run on the base model
 # run ${common01} trainer=RepSelectSimple \
-#   trainer.args.learning_rate=0.11564327765540657 \
+#   trainer.args.learning_rate=0.1 \
 #   trainer.method_args.lora_lr=0.05012932753237797 \
 #   task_name=${prefix01}_RepSelectSimple_forget
 # run ${common01} trainer=GradDiff \

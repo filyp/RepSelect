@@ -10,11 +10,11 @@
   },
   "0.01": {
     "RepSelectSimple_forget": {
-      "kl": 0.009478945285081863,
-      "robustness": 0.0327332108592935,
-      "mmlu": 0.6868884540117417,
-      "run": "v5.3_Llama-3.1-8B_bio_RepSelectSimple_forget_26",
-      "note": "kl0.01 rerun overshot the budget at step 1; mmlu taken from kl0.03_Llama-3.1-8B_bio_RepSelectSimple_forget"
+      "kl": 0.00812507327646017,
+      "robustness": 0.03755078503245147,
+      "mmlu": 0.6937377690802349,
+      "run": "kl0.01_Llama-3.1-8B_bio_RepSelectSimple_forget",
+      "unlearning_lr": null
     },
     "NPO": {
       "kl": 0.00833576638251543,

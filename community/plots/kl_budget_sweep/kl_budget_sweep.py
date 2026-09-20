@@ -97,29 +97,16 @@ def fetch():
             continue
         kl_hist = unl_run.history(keys=[KL_METRIC])[KL_METRIC].dropna().values
         rob_hist = rel_run.history(keys=[ROB_METRIC])[ROB_METRIC].dropna().values
+        if last_valid_kl(kl_hist, budget) == 0.0:
+            # overshot the budget at the first step: the attacked checkpoint is the base model
+            print(f"  {budget} {method}: overshot at step 1 ({name}), attack ran on the base model, skipping")
+            continue
         data[str(budget)][method] = {
             "kl": last_valid_kl(kl_hist, budget),
             "robustness": float(np.max(rob_hist)),
             "mmlu": rel_run.summary.get(MMLU_METRIC),
             "run": name,
             "unlearning_lr": flat_lr(unl_run),
-        }
-
-    # RepSelect's single step at the top-1 LR lands at KL ~0.010 +- run-to-run noise: the
-    # kl0.01 rerun overshot (0.0106 > 0.01) so its "last valid" checkpoint is the base
-    # model. Use the paper's trial for KL / robustness (it landed at 0.0095), and MMLU
-    # from the kl0.03 run, whose attacked checkpoint is that same single step (KL 0.0106).
-    rs = "RepSelectSimple_forget"
-    if data["0.01"].get(rs, {}).get("kl") == 0.0 and rs in data["0.03"]:
-        paper = "v5.3_Llama-3.1-8B_bio_RepSelectSimple_forget_26"
-        unl_run = one_run(UNL_PROJECT, paper)
-        rel_run = one_run(REL_PROJECT, paper)
-        data["0.01"][rs] = {
-            "kl": last_valid_kl(unl_run.history(keys=[KL_METRIC])[KL_METRIC].dropna().values, 0.01),
-            "robustness": float(rel_run.history(keys=[ROB_METRIC])[ROB_METRIC].dropna().max()),
-            "mmlu": data["0.03"][rs]["mmlu"],
-            "run": paper,
-            "note": f"kl0.01 rerun overshot the budget at step 1; mmlu taken from {data['0.03'][rs]['run']}",
         }
 
     ref = one_run(REL_PROJECT, REFERENCE_RUN)
