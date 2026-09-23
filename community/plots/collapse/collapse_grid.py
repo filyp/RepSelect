@@ -9,8 +9,8 @@ import yaml
 import wandb
 
 # choices: soft | quadratic | ridge | ridge_module_retuning
-hard_soft = "soft"
-# hard_soft = "quadratic"
+# hard_soft = "soft"
+hard_soft = "quadratic"
 # hard_soft = "ridge_module_retuning"
 # hard_soft = "ridge"
 # hard_soft = "ridge1024"
@@ -92,6 +92,11 @@ BENCH_CONFIGS = {
 def task_name(exp_name, model, suffix):
     # "no collapse" runs are unaffected by the collapse variant, so the
     # non-soft grids reuse the original soft runs for them.
+    # NOTE n_pcs mismatch when comparing soft vs quadratic on bio and aa: the soft
+    # runs (2026-04-24) used n_pcs=500, the quadratic ones (2026-07-26) 512. Left
+    # as is: July's soft bio reruns at 512 (collapse2_bio_*) match the 500 runs
+    # to within 0.03 points, and Fig. 8 shows a flat plateau over 128-1024.
+    # cyber, rwku and sycophancy use 512 on both sides (see collapse_quadratic_rest.sh).
     if hard_soft == "soft" or suffix.endswith("_none"):
         return f"collapse_{exp_name}_{model}_{suffix}"
     return f"collapse2_{exp_name}_{model}_{suffix}_{hard_soft}"
@@ -201,7 +206,10 @@ for row_idx, (model_display, model_field) in enumerate(MODELS):
                 continue
             maxes.append(head.max() * 100)
             initials.append(head.iloc[0] * 100)
-            n_found += 1
+            # the "no collapse" row is reused from the soft runs, so it must not
+            # count as evidence that this cell has been run for the current variant
+            if not suffix.endswith("_none"):
+                n_found += 1
 
         # Blank panel for cells with no runs yet
         if n_found == 0:
