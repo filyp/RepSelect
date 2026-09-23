@@ -49,7 +49,7 @@ ${common} trainer=RMU hydra/sweeper=RMU task_name=${prefix}_RMU
 ${common} trainer=SimNPO hydra/sweeper=SimNPO task_name=${prefix}_SimNPO
 ${common} trainer=UNDIAL hydra/sweeper=UNDIAL task_name=${prefix}_UNDIAL
 
-${common} trainer=RepSelectSimple hydra/sweeper=${rs_sweeper} task_name=${prefix}_RepSelectSimple_forget
+${common} trainer=RepSelectSimple hydra/sweeper=${rs_sweeper} trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft task_name=${prefix}_RepSelectSimple_forget
 
 # # ABLATIONS
 # ${common} trainer=RepSelectSimple hydra/sweeper=${rs_sweeper} \

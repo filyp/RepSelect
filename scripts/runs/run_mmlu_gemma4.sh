@@ -60,7 +60,8 @@ python src/eval.py \
 # RepSelectSimple — best bio: lr=0.0268, lora_lr=0.032
 run_bio RepSelectSimple mmlu_gemma-4-E4B_bio_RepSelect \
     trainer.args.learning_rate=0.0267561068095576 \
-    trainer.method_args.lora_lr=0.0319953095819889
+    trainer.method_args.lora_lr=0.0319953095819889 \
+    trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft
 
 
 echo "=== All Gemma-4-E4B MMLU runs done. Results in saves/eval/mmlu_gemma-4-E4B_bio_*/ ==="

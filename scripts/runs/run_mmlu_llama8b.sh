@@ -52,7 +52,8 @@ run_bio() {
 # RepSelectSimple — community benchmark HPs (optimised for fine-tuning attack)
 run_bio RepSelectSimple mmlu_Llama-3.1-8B_bio_RepSelect \
     trainer.args.learning_rate=0.115643277655407 \
-    trainer.method_args.lora_lr=0.050129327532378
+    trainer.method_args.lora_lr=0.050129327532378 \
+    trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft
 
 
 echo "=== All done. MMLU results in saves/eval/mmlu_Llama-3.1-8B_bio_*/ ==="

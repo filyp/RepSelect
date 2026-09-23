@@ -19,6 +19,7 @@ for hard_soft in soft hard; do
           model=${model} \
           trainer.method_args.n_pcs=${n_pcs} \
           trainer.method_args.hard_soft=${hard_soft} \
+          trainer.method_args.distribution=forget \
           task_name=hardvssoft_${exp_name}_${model}_${n_pcs}_${hard_soft}
         echo $?
         run python src/unlearn_relearn.py --config-name=unlearn.yaml \

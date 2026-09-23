@@ -6,7 +6,7 @@ run() {
   modal run runners/modal_runner.py --args "$*"
 }
 
-common="run python3 src/unlearn_relearn.py --config-name=unlearn.yaml experiment=unlearn/beavertails/curated_contrast trainer=RepSelectSimple trainer.method_args.use_lora=false trainer.args.num_train_epochs=30 data.anchor=forget"
+common="run python3 src/unlearn_relearn.py --config-name=unlearn.yaml experiment=unlearn/beavertails/curated_contrast trainer=RepSelectSimple trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft trainer.method_args.use_lora=false trainer.args.num_train_epochs=30 data.anchor=forget"
 
 # run on A100 80GB
 model=Llama-3.1-8B

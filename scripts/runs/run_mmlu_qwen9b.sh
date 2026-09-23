@@ -59,6 +59,7 @@ python src/eval.py \
 # RepSelectSimple — community benchmark HPs (optimised for fine-tuning attack)
 run_bio RepSelectSimple mmlu_Qwen3.5-9B_bio_RepSelect \
     trainer.args.learning_rate=0.0351786851436107 \
-    trainer.method_args.lora_lr=0.097894486006065
+    trainer.method_args.lora_lr=0.097894486006065 \
+    trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft
 
 echo "=== All done. MMLU results in saves/eval/mmlu_Qwen3.5-9B_bio_*/ ==="

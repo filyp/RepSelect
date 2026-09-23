@@ -28,6 +28,7 @@ for dist in forget retain; do
       model=${model} \
       trainer.method_args.distribution=${dist} \
       trainer.method_args.collapse_on=${collapse} \
+      trainer.method_args.hard_soft=soft \
       ${extra} \
       task_name=collapse_${exp_name}_${model}_${dist}_${collapse}
   done

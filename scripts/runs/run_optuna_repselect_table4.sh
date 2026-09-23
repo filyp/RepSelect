@@ -16,7 +16,7 @@ conda activate unlearning
 
 mkdir -p saves/logs
 
-COMMON="trainer=RepSelectSimple hydra/sweeper=RepSelectSimple hydra.sweeper.n_trials=10 trainer.args.per_device_eval_batch_size=1"
+COMMON="trainer=RepSelectSimple hydra/sweeper=RepSelectSimple trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft hydra.sweeper.n_trials=10 trainer.args.per_device_eval_batch_size=1"
 # Only run fewshot5 and fewshot10 evals; disable everything else
 BIO_SKIP="eval.wmdp_low_mi=null eval.recall_prob=null eval.retain_eval=null eval.wikitext_kl=null"
 BT_SKIP="eval.holdout_harmful=null eval.fewshot_attack_0=null eval.wikitext=null"

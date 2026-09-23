@@ -42,6 +42,7 @@ run ${common} trainer=NPO \
 
 # RepSelect (trial 26 of v5.3_Llama-3.1-8B_bio_RepSelectSimple_forget)
 run ${common} trainer=RepSelectSimple \
+  trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft \
   trainer.args.learning_rate=0.11564327765540657 \
   trainer.method_args.lora_lr=0.05012932753237797 \
   task_name=${prefix}_RepSelectSimple_forget
@@ -89,6 +90,7 @@ prefix01="kl0.01_${model}_${wmdp_domain}"
 #   task_name=${prefix01}_NPO
 # # # note: the LR is slightly smaller, than the 0.11 value from Optuna search, because the original one can randomly overshoot the kl0.01 target in one epoch, which makes relearning be run on the base model
 # run ${common01} trainer=RepSelectSimple \
+#   trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft \
 #   trainer.args.learning_rate=0.1 \
 #   trainer.method_args.lora_lr=0.05012932753237797 \
 #   task_name=${prefix01}_RepSelectSimple_forget
@@ -121,6 +123,7 @@ prefix01="kl0.01_${model}_${wmdp_domain}"
 # and should stop after ~3 steps at KL ~0.003.
 common003="python src/unlearn_relearn.py --config-name=unlearn.yaml experiment=unlearn/wmdp_low_mi/default model=${model} wmdp_domain=${wmdp_domain} eval.wikitext_kl.disr_budget=0.003 trainer.args.num_train_epochs=100"
 run ${common003} trainer=RepSelectSimple \
+  trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft \
   trainer.args.learning_rate=0.02 \
   trainer.method_args.lora_lr=0.05012932753237797 \
   task_name=kl0.003_${model}_${wmdp_domain}_RepSelectSimple_forget

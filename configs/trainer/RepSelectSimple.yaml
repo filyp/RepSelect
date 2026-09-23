@@ -5,10 +5,12 @@ handler: RepSelectSimple
 args:
   learning_rate: 0.05
 
+# The paper's (ARR Aug 2026) runs used distribution=forget, hard_soft=soft; the scripts
+# that reproduce them pin those explicitly, so the defaults below can change freely.
 method_args:
   n_pcs: 512
   lora_lr: 0.01
-  distribution: forget  # forget | retain
+  distribution: retain  # forget | retain
   collapse_on: both  # act | grad | both | none
   use_lora: true
-  hard_soft: soft  # hard | soft | quadratic
+  hard_soft: quadratic  # hard | soft | quadratic

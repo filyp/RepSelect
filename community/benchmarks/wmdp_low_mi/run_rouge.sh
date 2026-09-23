@@ -28,6 +28,7 @@ run() {
 
 # # note, the learning rate is lowered, because the original 0.11 is right at the edge of 0.01 KL in one epoch, so sometimes it makes this run unusable (the base model is the latest valid checkpoint)
 # run ${common} trainer=RepSelectSimple \
+#   trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft \
 #   trainer.args.learning_rate=0.10 \
 #   trainer.method_args.lora_lr=0.05012932753237797 \
 #   task_name=${prefix}_RepSelectSimple_forget
@@ -69,6 +70,7 @@ run() {
 # # note, the learning rate is lowered, because the original 0.11 is right at the edge of 0.01 KL in one epoch, so sometimes it makes this run unusable (the base model is the latest valid checkpoint)
 # common="python src/unlearn_relearn.py --config-name=unlearn.yaml experiment=unlearn/wmdp_low_mi/default model=${model} wmdp_domain=${wmdp_domain} eval.wikitext_kl.disr_budget=0.01 trainer.args.num_train_epochs=10 relearning_trainer.args.num_train_epochs=30"
 # run ${common} trainer=RepSelectSimple \
+#   trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft \
 #   trainer.args.learning_rate=0.10 \
 #   trainer.method_args.lora_lr=0.05012932753237797 \
 #   task_name=${prefix}_RepSelectSimple_forget_30epoch
@@ -83,6 +85,7 @@ prefix="${version}_${model}_${wmdp_domain}"
 run ${reference} trainer=GradDiff task_name=${prefix}_reference
 
 run ${common} trainer=RepSelectSimple \
+  trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft \
   trainer.args.learning_rate=0.10 \
   trainer.method_args.lora_lr=0.05012932753237797 \
   task_name=${prefix}_RepSelectSimple_forget

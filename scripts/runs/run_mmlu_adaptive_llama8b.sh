@@ -32,7 +32,8 @@ python src/unlearn_only.py --config-name=unlearn.yaml \
     trainer.args.eval_strategy=no \
     trainer.save_final_state=true \
     trainer.args.learning_rate=0.115643277655407 \
-    trainer.method_args.lora_lr=0.050129327532378 || exit 1
+    trainer.method_args.lora_lr=0.050129327532378 \
+    trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft || exit 1
 
 echo "=== ${TASK}: MMLU eval ==="
 python src/eval.py \

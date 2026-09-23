@@ -63,6 +63,7 @@ python src/eval.py \
 # RepSelectSimple — best bio: lr=13.7, lora_lr=1.04 (community benchmarks)
 run_bio RepSelectSimple mmlu_DeepSeek-V2-Lite_bio_RepSelect \
     trainer.args.learning_rate=13.6977203864842 \
-    trainer.method_args.lora_lr=1.04250201741007
+    trainer.method_args.lora_lr=1.04250201741007 \
+    trainer.method_args.distribution=forget trainer.method_args.hard_soft=soft
 
 echo "=== All done. MMLU results in saves/eval/mmlu_DeepSeek-V2-Lite_bio_*/ ==="
