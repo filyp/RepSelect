@@ -1,4 +1,10 @@
 #!/bin/bash
+# DONE (2026-09-23), the switch was then removed: the retain SVD is now always computed
+# with the elicited LoRA active. Result, max post-attack prob: no LoRA 18.3%;
+# LoRA with SVD before elicitation 21.1% / 22.0% (lora_lr 0.04 / 0.01); LoRA with
+# SVD after elicitation 19.0% / 18.8%. The `retain_svd_with_lora` override below no
+# longer exists, so this script is kept only as a record.
+#
 # Does the retain-side SVD do better on the elicited (LoRA-attached) model or on the
 # plain one? Llama-3.1-8B / Sycophancy, retain / both / quadratic, LoRA elicitation ON.
 #   retain_svd_with_lora=false: retain SVD before the LoRA elicitation (the current code path)

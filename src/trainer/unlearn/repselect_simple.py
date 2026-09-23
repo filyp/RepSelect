@@ -51,11 +51,12 @@ class RepSelectSimple(UnlearnTrainer):
     """
     Single-shot variant of WGradSVD, over MLP gate/up/down projections:
     1. Adversarial LoRA pretrain: freeze base, SGD-descent LoRA on forget NLL.
-    2. Freeze LoRA, accumulate forget weight-gradient over one pass (LoRA
-       still active in forward).
-    3. Unload LoRA, SVD the weight-gradient of the chosen `distribution`
-       ("forget" or "retain"; "none" skips collapse), collapse its top
-       principal components on both D_in (via V) and D_out (via U).
+    2. Freeze LoRA; with it still active in the forward, accumulate the
+       weight-gradient of the chosen `distribution` ("forget" or "retain") over
+       one pass and SVD it, then accumulate the forget weight-gradient (for
+       "forget" these are the same pass).
+    3. Unload LoRA, collapse the top principal components of the forget
+       gradient on both D_in (via V) and D_out (via U); "none" skips collapse.
     4. Each training epoch: weight -= filtered_grad * lr, then evaluate.
     """
 
@@ -67,7 +68,6 @@ class RepSelectSimple(UnlearnTrainer):
         collapse_on="both",
         use_lora=True,
         hard_soft="soft",
-        retain_svd_with_lora=False,
         *args,
         **kwargs,
     ):
@@ -78,9 +78,6 @@ class RepSelectSimple(UnlearnTrainer):
         self.collapse_on = collapse_on
         self.use_lora = use_lora
         self.hard_soft = hard_soft
-        # distribution=retain only: compute the retain SVD after the LoRA elicitation
-        # (LoRA active in the forward, like the forget gradient) instead of before it
-        self.retain_svd_with_lora = retain_svd_with_lora
         assert distribution in ["forget", "retain"]
         assert collapse_on in ["act", "grad", "both", "none"]
         assert hard_soft in ["hard", "soft", "quadratic"]
@@ -119,10 +116,6 @@ class RepSelectSimple(UnlearnTrainer):
         )
         self.model.train()
 
-        # retain epoch + SVD, on the model without LoRA elicitation (default)
-        if self.distribution == "retain" and not self.retain_svd_with_lora:
-            self._retain_svd()
-
         # LoRA adversarial pre-training: one epoch, SGD descent on forget NLL
         if self.use_lora:  # toggle for ablations
             _train_on(self.lora_params, self.model)
@@ -134,9 +127,19 @@ class RepSelectSimple(UnlearnTrainer):
                 for p in self.lora_params:
                     p.data -= self.lora_lr * p.grad
 
-        # retain epoch + SVD with the elicited LoRA active in the forward
-        if self.distribution == "retain" and self.retain_svd_with_lora:
-            self._retain_svd()
+        # retain epoch + SVD, with the elicited LoRA active in the forward (like the
+        # forget gradient below). Computing it before the elicitation was 2-3 points
+        # worse on Llama/Sycophancy (community/plots/collapse/retain_svd_lora.sh).
+        if self.distribution == "retain":
+            """One pass over the retain set, accumulate the weight gradient, SVD it."""
+            self.model.zero_grad(set_to_none=True)
+            _train_on(self.base_trainable_params, self.model)
+            for batch_pair in self.get_train_dataloader():
+                r_batch = _prep_batch(batch_pair["retain"])
+                output = self.model(**r_batch)
+                (-output.loss).backward()
+            for weight in self.base_trainable_params:
+                weight.USV = pt.svd_lowrank(weight.grad.float(), q=self.n_pcs)
 
         # one epoch: accumulate forget weight-gradient with LoRA active
         self.model.zero_grad(set_to_none=True)
@@ -170,17 +173,6 @@ class RepSelectSimple(UnlearnTrainer):
         self.control = self.callback_handler.on_train_end(
             self.args, self.state, self.control
         )
-
-    def _retain_svd(self):
-        """One pass over the retain set, accumulate the weight gradient, SVD it."""
-        self.model.zero_grad(set_to_none=True)
-        _train_on(self.base_trainable_params, self.model)
-        for batch_pair in self.get_train_dataloader():
-            r_batch = _prep_batch(batch_pair["retain"])
-            output = self.model(**r_batch)
-            (-output.loss).backward()
-        for weight in self.base_trainable_params:
-            weight.USV = pt.svd_lowrank(weight.grad.float(), q=self.n_pcs)
 
     def _apply_unlearn_loop(self):
         # perform dummy epochs, simply applying the filtered gradient
