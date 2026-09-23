@@ -14,3 +14,4 @@ method_args:
   collapse_on: both  # act | grad | both | none
   use_lora: true
   hard_soft: quadratic  # hard | soft | quadratic
+  retain_svd_with_lora: false  # retain SVD after LoRA elicitation (LoRA active) instead of before; only used if distribution=retain and use_lora=true
