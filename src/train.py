@@ -25,6 +25,11 @@ def main(cfg: DictConfig):
     template_args = model_cfg.template_args
     assert model_cfg is not None, "Invalid model yaml passed in train config."
     model, tokenizer = get_model(model_cfg)
+    if mode == "relearn" and cfg.get("relearn_quantize"):
+        # quantization attack on the unlearned model (see src/model/quantize.py)
+        from model.quantize import quantize_roundtrip
+
+        quantize_roundtrip(model, cfg.relearn_quantize)
 
     # Load Dataset
     data_cfg = cfg.data

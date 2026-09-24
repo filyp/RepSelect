@@ -14,5 +14,6 @@ trainer:
     remove_unused_columns: False
 
 mode: unlearn
+relearn_quantize: null  # null | nf4 | int8: quantization attack applied before relearning
 task_name: ???
 run_name_offset: 0  # for resuming optuna studies: offset added to the wandb run-name suffix

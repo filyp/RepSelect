@@ -51,6 +51,7 @@ def get_data(data_cfg: DictConfig, mode="train", **kwargs):
     data = {}
     data_cfg = dict(data_cfg)
     anchor = data_cfg.pop("anchor", "forget")
+    relearn_split = data_cfg.pop("relearn_split", "relearn")  # attack data for the relearn stage
     custom_loaders_cfg = data_cfg.pop("custom_loaders", [])
     for split, dataset_cfgs in data_cfg.items():
         data[split] = get_datasets(dataset_cfgs, **kwargs)
@@ -68,7 +69,7 @@ def get_data(data_cfg: DictConfig, mode="train", **kwargs):
         data.pop("retain")
         data.pop("forget")
     elif mode == "relearn":
-        data["train"] = data["relearn"]
+        data["train"] = data[relearn_split]
     return data
 
 

@@ -103,6 +103,9 @@ _wmdp_retain_files:
   cyber:
     - computer_science_and_technology/computer_science_and_technology_000000.jsonl
 data:
+  # relearn-stage training data: relearn (the adversarial fine-tuning attack, default),
+  # benign_relearn or unrelated_relearn (benign-data relearning attacks, run_attacks.sh)
+  relearn_split: relearn
   custom_loaders:
     - loader: wmdp_low_mi
       dataset: ${wmdp_domain}
@@ -124,6 +127,21 @@ data:
       hf_args:
         path: m-a-p/FineFineWeb
         data_files: ${_wmdp_retain_files.${wmdp_domain}}
+
+    - loader: load_hf_and_tokenize  # benign relearning: domain web text, disjoint from retain/retain_eval
+      dataset_name: benign_relearn
+      range: [2000, 2282]  # same size as the relearn split
+      tokenizer: ${tokenizer_cfg}
+      hf_args:
+        path: m-a-p/FineFineWeb
+        data_files: ${_wmdp_retain_files.${wmdp_domain}}
+
+    - loader: load_hf_and_tokenize  # unrelated-data relearning: wikitext, disjoint from the KL eval
+      dataset_name: unrelated_relearn
+      range: [1000, 1282]
+      tokenizer: ${tokenizer_cfg}
+      hf_args:
+        path: filypo/wikitext_16k
 
     - loader: load_hf_and_tokenize  # wikitext for KL eval
       dataset_name: wikitext
