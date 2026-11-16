@@ -24,7 +24,8 @@ from trainer.unlearn.repselect.contrast_trainer import Contrast
 from trainer.unlearn.repselect.wgrad_svd_trainer import WGradSVD
 from trainer.unlearn.repselect.wgrad_svd_joint_trainer import WGradSVDJoint
 from trainer.unlearn.repselect_simple import RepSelectSimple
-from trainer.unlearn.repselect_adaptive import RepSelectAdaptive
+from trainer.unlearn.repselect_adaptive import RepSelectAdaptive, RepSelectCovAdaptive
+from trainer.unlearn.repselect_cov import RepSelectCov
 import logging
 
 logger = logging.getLogger(__name__)
@@ -117,3 +118,5 @@ _register_trainer(WGradSVD)
 _register_trainer(WGradSVDJoint)
 _register_trainer(RepSelectSimple)
 _register_trainer(RepSelectAdaptive)
+_register_trainer(RepSelectCov)
+_register_trainer(RepSelectCovAdaptive)

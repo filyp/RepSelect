@@ -1,0 +1,10 @@
+defaults:
+  - finetune
+
+handler: RepSelectCov  # RepSelectCovAdaptive: step size bisected onto the KL budget
+args:
+  learning_rate: 0.05
+
+method_args:
+  n_pcs: 512
+  weighted: true  # true: sum |g|^2 a a', sum |a|^2 g g'; false: sum a a', sum g g'

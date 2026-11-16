@@ -1,6 +1,7 @@
 import logging
 import math
 
+from trainer.unlearn.repselect_cov import RepSelectCov
 from trainer.unlearn.repselect_simple import RepSelectSimple
 
 logger = logging.getLogger(__name__)
@@ -92,3 +93,10 @@ class RepSelectAdaptive(RepSelectSimple):
         self.state.epoch = 1
         # final full eval at the chosen alpha
         self.evaluate()
+
+
+class RepSelectCovAdaptive(RepSelectCov):
+    """RepSelectCov with RepSelectAdaptive's step-size search."""
+
+    _step_to = RepSelectAdaptive._step_to
+    _apply_unlearn_loop = RepSelectAdaptive._apply_unlearn_loop
