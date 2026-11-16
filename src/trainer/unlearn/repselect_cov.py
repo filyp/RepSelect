@@ -81,13 +81,15 @@ class RepSelectCov(UnlearnTrainer):
     4. Each training epoch: weight -= filtered_grad * lr, then evaluate.
     """
 
-    cov_dtype = pt.bfloat16  # of the accumulators; each batch's cov is fp32
-
     def __init__(self, n_pcs, weighted, inverse, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_pcs = n_pcs  # unused if inverse
         self.weighted = weighted
         self.inverse = inverse
+        # Of the accumulators; each batch's cov is fp32. The inverse needs fp32: the
+        # rounding of a bf16 accumulator (~1%) is above the ridge, and the Cholesky
+        # then fails on a cov that is no longer positive definite.
+        self.cov_dtype = pt.float32 if inverse else pt.bfloat16
         layers = self.model.model.layers
         assert not any(hasattr(layer.mlp, "experts") for layer in layers), "no MoE"
         self.modules = [
