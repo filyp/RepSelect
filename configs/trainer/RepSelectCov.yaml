@@ -10,3 +10,4 @@ method_args:
   weighted: true  # true: sum |g|^2 a a', sum |a|^2 g g'; false: sum a a', sum g g'
   inverse: false  # true: cov_grad^-1 G cov_act^-1 (ridge-inverted, full rank) instead of the top n_pcs collapse
   eps_pc: null  # inverse only: ridge = this eigenvalue of each cov (null: 1e-3 x mean diagonal)
+  cov_fp64: false  # each batch's cov computed in fp64 (acts and grads cast) instead of fp32; the accumulators stay as they are

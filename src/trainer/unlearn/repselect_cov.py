@@ -35,13 +35,18 @@ def _zero_cov(d, dtype, device) -> list[pt.Tensor]:
     ]
 
 
-def _add_cov(panels: list[pt.Tensor], x: pt.Tensor):
+def _add_cov(panels: list[pt.Tensor], x: pt.Tensor, fp64: bool):
     """panels += x' x of x (tokens, d). Each panel's product is fp32 (a plain bf16
-    matmul returns bf16; out_dtype is CUDA only)."""
+    matmul returns bf16; out_dtype is CUDA only), or fp64 with x cast to fp64."""
+    if fp64:
+        x = x.double()
     for i, panel in enumerate(panels):
         r0 = i * PANEL_ROWS
         r1 = r0 + panel.shape[0]
-        panel += pt.mm(x[:, r0:r1].mT, x[:, r0:], out_dtype=pt.float32)
+        if fp64:
+            panel += x[:, r0:r1].mT @ x[:, r0:]
+        else:
+            panel += pt.mm(x[:, r0:r1].mT, x[:, r0:], out_dtype=pt.float32)
 
 
 def _full_cov(panels: list[pt.Tensor]) -> pt.Tensor:
@@ -90,13 +95,14 @@ class RepSelectCov(UnlearnTrainer):
     4. Each training epoch: weight -= filtered_grad * lr, then evaluate.
     """
 
-    def __init__(self, n_pcs, weighted, inverse, eps_pc, *args, **kwargs):
+    def __init__(self, n_pcs, weighted, inverse, eps_pc, cov_fp64, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_pcs = n_pcs  # unused if inverse
         self.eps_pc = eps_pc  # only if inverse; None: ridge of PRE_EPS x mean diagonal
+        self.cov_fp64 = cov_fp64  # each batch's cov in fp64 instead of fp32
         self.weighted = weighted
         self.inverse = inverse
-        # Of the accumulators; each batch's cov is fp32. The inverse needs fp32: the
+        # Of the accumulators (each batch's cov: see cov_fp64). The inverse needs fp32: the
         # rounding of a bf16 accumulator (~1%) is above the ridge, and the Cholesky
         # then fails on a cov that is no longer positive definite.
         self.cov_dtype = pt.float32 if inverse else pt.bfloat16
@@ -116,8 +122,8 @@ class RepSelectCov(UnlearnTrainer):
             grad_norm = grad.float().norm(dim=1, keepdim=True)
             act = (act * grad_norm).to(act.dtype)
             grad = (grad * act_norm).to(grad.dtype)
-        _add_cov(weight.cov_act, act)
-        _add_cov(weight.cov_grad, grad)
+        _add_cov(weight.cov_act, act, self.cov_fp64)
+        _add_cov(weight.cov_grad, grad, self.cov_fp64)
 
     def _accumulate_covs(self):
         """One pass over the retain set, accumulating weight.cov_act (D_in, D_in)

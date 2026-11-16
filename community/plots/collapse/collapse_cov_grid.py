@@ -48,6 +48,8 @@ ROWS = [
     ("cov unw. inverse", "cov_{cov_exp}_{model}_retain_both_unweighted_inverse"),
     ("cov weighted", "cov_{cov_exp}_{model}_retain_both_weighted"),
     ("cov w. inverse", "cov_{cov_exp}_{model}_retain_both_weighted_inverse"),
+    # as "cov w. inverse", with each batch's cov computed in fp64 instead of fp32
+    ("cov w. inv. fp64", "cov_{cov_exp}_{model}_retain_both_weighted_inverse_fp64"),
     # ridge = the cov's 512th eigenvalue instead of 1e-3 x its mean diagonal
     ("cov w. inv. eps512", "cov_{cov_exp}_{model}_retain_both_weighted_inverse_eps512"),
 ]
@@ -104,8 +106,8 @@ fig, axes = plt.subplots(nrows, ncols, figsize=(5.5, 1.0 + 1.7 * nrows))
 colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 # "no collapse" keeps its color from the collapse grid
 # the inverse variants share their cov's color, hatched
-bar_colors = [colors[3], colors[2], colors[0], colors[1], colors[1]] + [colors[4]] * 3
-bar_hatches = ["", "", "", "", "///", "", "///", "xxx"]
+bar_colors = [colors[3], colors[2], colors[0], colors[1], colors[1]] + [colors[4]] * 4
+bar_hatches = ["", "", "", "", "///", "", "///", "...", "xxx"]
 y_positions = list(range(len(ROWS) - 1, -1, -1))  # first row on top
 
 for row_idx, model in enumerate(MODELS):
