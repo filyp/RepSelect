@@ -9,14 +9,20 @@
 # Reference runs: cov_{exp}_{model}_retain_both_{variant} (top 512) and
 # collapse2_{exp}_{model}_retain_both_quadratic.
 #
-# Dense models only (no DeepSeek). verda_runner.sh picks the GPU from the model
-# name: Llama-3.1-8B -> RTX PRO 6000 96GB, Qwen3.5-9B -> H200 141GB.
+# Dense models only (no DeepSeek). Everything goes to the H200 141GB: the inverse
+# needs fp32 cov accumulators (~46 GB for Llama-3.1-8B), too tight for the RTX PRO
+# 6000 96GB that verda_runner.sh would pick for Llama. So this script posts to the
+# H200 endpoint itself instead of calling verda_runner.sh.
 #
 # Usage: bash community/plots/collapse/collapse_cov_inverse.sh   (from the repo root)
 
 source .venv/bin/activate
 run() {
-  bash verda_runner.sh $*
+  [[ "$*" == *'"'* ]] && echo "Error: command must not contain double quotes" && exit 1
+  curl -X POST "https://tasks.datacrunch.io/open-unlearning3/run" \
+    -H "Authorization: Bearer $(cat verda_token.txt)" \
+    -H "Content-Type: application/json" \
+    -d "{\"command\": \"$*\"}"
 }
 
 common="python src/unlearn_relearn.py --config-name=unlearn.yaml trainer=RepSelectCov trainer.handler=RepSelectCovAdaptive trainer.method_args.inverse=true ~eval.general_caps"

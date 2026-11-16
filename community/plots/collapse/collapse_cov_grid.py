@@ -45,8 +45,15 @@ ROWS = [
     ("RepSelect", "collapse_{exp}_{model}_retain_both"),
     ("RepSelect quadratic", "collapse2_{exp}_{model}_retain_both_quadratic"),
     ("cov unweighted", "cov_{cov_exp}_{model}_retain_both_unweighted"),
+    ("cov unw. inverse", "cov_{cov_exp}_{model}_retain_both_unweighted_inverse"),
     ("cov weighted", "cov_{cov_exp}_{model}_retain_both_weighted"),
+    ("cov w. inverse", "cov_{cov_exp}_{model}_retain_both_weighted_inverse"),
+    # ridge = the cov's 512th eigenvalue instead of 1e-3 x its mean diagonal
+    ("cov w. inv. eps512", "cov_{cov_exp}_{model}_retain_both_weighted_inverse_eps512"),
 ]
+
+# runs that crash (Cholesky: cov + ridge not positive definite); marked in the plot
+FAILING = {"cov_aa_Llama-3.1-8B_retain_both_unweighted_inverse"}
 
 
 def task_name(template, model, exp, cov_exp):
@@ -64,7 +71,7 @@ expected = [
     for exp, cov_exp, _, _, metric in BENCHMARKS
     for _, template in ROWS
 ]
-missing = [(t, metric) for t, metric in expected if t not in cache]
+missing = [(t, m) for t, m in expected if t not in cache and t not in FAILING]
 if missing:
     api = wandb.Api(timeout=3600)
     for t, metric in missing:
@@ -82,6 +89,9 @@ if missing:
                 time.sleep(2**i)
         else:
             raise RuntimeError(f"failed to fetch history for {t}")
+        if cache[t][metric].notna().sum() < REL_STEPS:  # epochs 0..10
+            print(f"SKIPPED {t}: only {len(cache.pop(t))} relearning points")
+            continue
         print(f"fetched {t}: {len(cache[t])} points")
     with open(CACHE_FILE, "wb") as f:
         pickle.dump(cache, f)
@@ -90,10 +100,12 @@ if missing:
 # === CELL 2: plot ===
 
 nrows, ncols = len(MODELS), len(BENCHMARKS)
-fig, axes = plt.subplots(nrows, ncols, figsize=(5.5, 1.0 + 1.35 * nrows))
+fig, axes = plt.subplots(nrows, ncols, figsize=(5.5, 1.0 + 1.7 * nrows))
 colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 # "no collapse" keeps its color from the collapse grid
-bar_colors = [colors[3], colors[2], colors[0], colors[1], colors[4]]
+# the inverse variants share their cov's color, hatched
+bar_colors = [colors[3], colors[2], colors[0], colors[1], colors[1]] + [colors[4]] * 3
+bar_hatches = ["", "", "", "", "///", "", "///", "xxx"]
 y_positions = list(range(len(ROWS) - 1, -1, -1))  # first row on top
 
 for row_idx, model in enumerate(MODELS):
@@ -112,13 +124,23 @@ for row_idx, model in enumerate(MODELS):
             values.append(hist.head(REL_STEPS)[metric].dropna().max() * 100)
             print(f"{model:13s} {bench_display:13s} {label:20s} {values[-1]:6.2f}")
 
-        ax.barh(
+        bars = ax.barh(
             y_positions,
             [v - baseline for v in values],
             height=0.9,
             color=bar_colors,
             left=baseline,
         )
+        for patch, hatch in zip(bars, bar_hatches):
+            if hatch:
+                patch.set_hatch(hatch)
+                patch.set_edgecolor("white")
+        for y, (_, template) in zip(y_positions, ROWS):
+            if task_name(template, model, exp, cov_exp) in FAILING:
+                ax.text(
+                    0.97, y, "FAILING", transform=ax.get_yaxis_transform(),
+                    ha="right", va="center", fontsize=6, color="red",
+                )  # fmt: skip
         if row_idx == 0:
             ax.set_title(bench_display)
         if col_idx == 0:

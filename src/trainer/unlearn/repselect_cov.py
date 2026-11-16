@@ -8,7 +8,10 @@ The forget gradient G is then filtered with them, in one of two ways:
     inverse=False:  collapsed along the top n_pcs eigenvectors of each, dividing by
                     the eigenvalues (they take the place of S^2 of the gradient's SVD)
     inverse=True:   cov_grad^-1 G cov_act^-1, full rank, each cov with a ridge of
-                    PRE_EPS x its mean diagonal (the init of als.solve)
+                    PRE_EPS x its mean diagonal (the init of als.solve), or, with
+                    eps_pc=k, of its k-th eigenvalue: a smooth version of the
+                    collapse along the top k (ridge / (eig_val + ridge) in place of
+                    min(1, k-th eig_val / eig_val))
 
 Dense MLPs only, no LoRA elicitation.
 """
@@ -56,10 +59,16 @@ def _full_cov(panels: list[pt.Tensor]) -> pt.Tensor:
 PRE_EPS = 1e-3  # ridge on the covs before inverting, x mean diagonal (as als.solve)
 
 
-def _inv(panels: list[pt.Tensor]) -> pt.Tensor:
-    """(cov + PRE_EPS x mean diagonal)^-1, fp32, via Cholesky in fp64 (as als.solve._inv)"""
-    cov = _full_cov(panels).double()
-    cov.diagonal().add_(PRE_EPS * cov.diagonal().mean())
+def _inv(panels: list[pt.Tensor], eps_pc: int | None) -> pt.Tensor:
+    """(cov + ridge)^-1, fp32, via Cholesky in fp64 (as als.solve._inv). The ridge is
+    PRE_EPS x mean diagonal, or the eps_pc-th eigenvalue of the cov if eps_pc is set."""
+    cov = _full_cov(panels)
+    if eps_pc is None:
+        ridge = PRE_EPS * cov.diagonal().mean()
+    else:
+        ridge = pt.svd_lowrank(cov, q=eps_pc)[1].min()
+    cov = cov.double()
+    cov.diagonal().add_(ridge)
     return pt.cholesky_inverse(pt.linalg.cholesky(cov)).float()
 
 
@@ -81,9 +90,10 @@ class RepSelectCov(UnlearnTrainer):
     4. Each training epoch: weight -= filtered_grad * lr, then evaluate.
     """
 
-    def __init__(self, n_pcs, weighted, inverse, *args, **kwargs):
+    def __init__(self, n_pcs, weighted, inverse, eps_pc, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_pcs = n_pcs  # unused if inverse
+        self.eps_pc = eps_pc  # only if inverse; None: ridge of PRE_EPS x mean diagonal
         self.weighted = weighted
         self.inverse = inverse
         # Of the accumulators; each batch's cov is fp32. The inverse needs fp32: the
@@ -173,7 +183,8 @@ class RepSelectCov(UnlearnTrainer):
             grad = weight.grad.float()
             grad_sq += grad.pow(2).sum()
             if self.inverse:
-                grad = _inv(weight.cov_grad) @ grad @ _inv(weight.cov_act)
+                inv_grad = _inv(weight.cov_grad, self.eps_pc)
+                grad = inv_grad @ grad @ _inv(weight.cov_act, self.eps_pc)
                 del weight.cov_act, weight.cov_grad
             else:
                 grad = _collapse(grad, weight.V, weight.S_act)  # D_in side
