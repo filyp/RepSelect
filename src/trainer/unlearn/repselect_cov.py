@@ -4,8 +4,11 @@ summed retain gradient (not registered, no config).
 Per module, over the retain tokens t (a_t: input activation, g_t: output gradient):
     unweighted:  cov_act = sum_t a_t a_t',          cov_grad = sum_t g_t g_t'
     weighted:    cov_act = sum_t |g_t|^2 a_t a_t',  cov_grad = sum_t |a_t|^2 g_t g_t'
-The forget gradient is then collapsed along the top n_pcs eigenvectors of each,
-dividing by the eigenvalues (they take the place of S^2 of the gradient's SVD).
+The forget gradient G is then filtered with them, in one of two ways:
+    inverse=False:  collapsed along the top n_pcs eigenvectors of each, dividing by
+                    the eigenvalues (they take the place of S^2 of the gradient's SVD)
+    inverse=True:   cov_grad^-1 G cov_act^-1, full rank, each cov with a ridge of
+                    PRE_EPS x its mean diagonal (the init of als.solve)
 
 Dense MLPs only, no LoRA elicitation.
 """
@@ -50,6 +53,16 @@ def _full_cov(panels: list[pt.Tensor]) -> pt.Tensor:
     return cov
 
 
+PRE_EPS = 1e-3  # ridge on the covs before inverting, x mean diagonal (as als.solve)
+
+
+def _inv(panels: list[pt.Tensor]) -> pt.Tensor:
+    """(cov + PRE_EPS x mean diagonal)^-1, fp32, via Cholesky in fp64 (as als.solve._inv)"""
+    cov = _full_cov(panels).double()
+    cov.diagonal().add_(PRE_EPS * cov.diagonal().mean())
+    return pt.cholesky_inverse(pt.linalg.cholesky(cov)).float()
+
+
 def _collapse(mat: pt.Tensor, eig_vec: pt.Tensor, eig_val: pt.Tensor) -> pt.Tensor:
     """Divide mat's components along the eig_vec columns by eig_val, normalized
     so that the smallest one maps to 1; the rest of mat is left as is."""
@@ -61,19 +74,20 @@ def _collapse(mat: pt.Tensor, eig_vec: pt.Tensor, eig_val: pt.Tensor) -> pt.Tens
 class RepSelectCov(UnlearnTrainer):
     """Single-shot unlearning update of the MLP gate/up/down projections:
     1. One pass over the retain set: accumulate each module's act and grad
-       covariances, then keep their top n_pcs eigenpairs.
+       covariances (inverse=False: then keep only their top n_pcs eigenpairs).
     2. One pass over the forget set: accumulate the weight gradient.
-    3. Collapse the forget gradient along the top eigenvectors, on D_in
-       (cov_act) and on D_out (cov_grad).
+    3. Filter the forget gradient on D_in (cov_act) and on D_out (cov_grad):
+       collapse it along the top eigenvectors, or multiply by the inverses.
     4. Each training epoch: weight -= filtered_grad * lr, then evaluate.
     """
 
     cov_dtype = pt.bfloat16  # of the accumulators; each batch's cov is fp32
 
-    def __init__(self, n_pcs, weighted, *args, **kwargs):
+    def __init__(self, n_pcs, weighted, inverse, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.n_pcs = n_pcs
+        self.n_pcs = n_pcs  # unused if inverse
         self.weighted = weighted
+        self.inverse = inverse
         layers = self.model.model.layers
         assert not any(hasattr(layer.mlp, "experts") for layer in layers), "no MoE"
         self.modules = [
@@ -131,6 +145,8 @@ class RepSelectCov(UnlearnTrainer):
 
         self._accumulate_covs()
         for weight in self.base_trainable_params:
+            if self.inverse:
+                break  # the covs are kept until they are inverted below
             # top eigenpairs; each cov is freed as soon as it is decomposed
             weight.V, weight.S_act, _ = pt.svd_lowrank(
                 _full_cov(weight.cov_act), q=self.n_pcs
@@ -150,12 +166,29 @@ class RepSelectCov(UnlearnTrainer):
             batch = {k: batch[k] for k in ("input_ids", "attention_mask", "labels")}
             (-self.model(**batch).loss).backward()
 
+        grad_sq, filtered_sq = 0, 0
         for weight in self.base_trainable_params:
             grad = weight.grad.float()
-            grad = _collapse(grad, weight.V, weight.S_act)  # D_in side
-            grad = _collapse(grad.mT, weight.U, weight.S_grad).mT  # D_out side
+            grad_sq += grad.pow(2).sum()
+            if self.inverse:
+                grad = _inv(weight.cov_grad) @ grad @ _inv(weight.cov_act)
+                del weight.cov_act, weight.cov_grad
+            else:
+                grad = _collapse(grad, weight.V, weight.S_act)  # D_in side
+                grad = _collapse(grad.mT, weight.U, weight.S_grad).mT  # D_out side
+            filtered_sq += grad.pow(2).sum()
             weight.filtered_grad = grad.to(weight.dtype)
             weight.grad = None
+
+        if self.inverse:
+            # The inverses carry the covs' raw scales. One global factor brings the
+            # update back to the forget gradient's norm, so that the step sizes are
+            # in the usual range; the modules keep their relative sizes.
+            # This could be skipped: it is one global scale, which the step size
+            # (learning_rate, or RepSelectAdaptive's search) absorbs.
+            scale = (grad_sq / filtered_sq).sqrt()
+            for weight in self.base_trainable_params:
+                weight.filtered_grad *= scale
 
         self._apply_unlearn_loop()
 

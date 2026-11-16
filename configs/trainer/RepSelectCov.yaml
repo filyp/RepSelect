@@ -8,3 +8,4 @@ args:
 method_args:
   n_pcs: 512
   weighted: true  # true: sum |g|^2 a a', sum |a|^2 g g'; false: sum a a', sum g g'
+  inverse: false  # true: cov_grad^-1 G cov_act^-1 (ridge-inverted, full rank) instead of the top n_pcs collapse
